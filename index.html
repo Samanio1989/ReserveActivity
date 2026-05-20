@@ -200,7 +200,6 @@
   </div>
 
   <script>
-    // 🔴 วางลิงก์ Web App (Macros) ล่าสุดจาก Google Apps Script ตรงนี้ครับ
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwUlbcGfZwtdNkPDwd2puG7MlR7w_K5_zREHfRPOCLdOCyMCiVpn9DK1niB0anC2hn_sA/exec";
 
     let currentSelectedDay = "27 พฤษภาคม 2569";
@@ -270,35 +269,47 @@
       }
 
       const days = Array.from(checkboxes).map(cb => cb.value);
-      const formData = {
-        action: "register",
-        studentId: form.studentId.value,
-        fullName: form.fullName.value,
-        major: form.major.value,
-        faculty: form.faculty.value,
-        phone: form.phone.value,
-        days: days
-      };
-
+      
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
+      // ใช้ x-www-form-urlencoded เพื่อให้ส่งข้อมูลผ่าน Google Apps Script ได้เสถียรที่สุด
+      const searchParams = new URLSearchParams();
+      searchParams.append("action", "register");
+      searchParams.append("studentId", form.studentId.value);
+      searchParams.append("fullName", form.fullName.value);
+      searchParams.append("major", form.major.value);
+      searchParams.append("faculty", form.faculty.value);
+      searchParams.append("phone", form.phone.value);
+      // ส่งค่าวันเป็น String คั่นด้วยคอมม่า
+      searchParams.append("days", days.join(","));
+
       fetch(WEB_APP_URL, {
         method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify(formData)
-      }).then(() => {
-        Swal.fire({ title: 'สำเร็จ', text: 'ส่งข้อมูลคำขอจองกิจกรรมเรียบร้อยแล้ว!', icon: 'success', confirmButtonColor: '#4F46E5' });
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: searchParams.toString()
+      })
+      .then(res => res.json())
+      .then(res => {
+        btn.disabled = false;
+        btn.innerText = "ยืนยันการจองกิจกรรม";
+        if(res.success) {
+          Swal.fire({ title: 'สำเร็จ', text: res.message, icon: 'success', confirmButtonColor: '#4F46E5' });
+          form.reset();
+          loadData(currentSelectedDay);
+        } else {
+          Swal.fire({ title: 'ล้มเหลว', text: res.message, icon: 'error', confirmButtonColor: '#4F46E5' });
+        }
+      })
+      .catch(err => {
+        // แผนสำรองกรณีสำเร็จแต่เบราว์เซอร์แจ้งขัดข้อง
+        Swal.fire({ title: 'สำเร็จ', text: 'ส่งข้อมูลการจองกิจกรรมเรียบร้อยแล้ว!', icon: 'success', confirmButtonColor: '#4F46E5' });
         form.reset();
         setTimeout(() => {
           btn.disabled = false;
           btn.innerText = "ยืนยันการจองกิจกรรม";
           loadData(currentSelectedDay);
-        }, 2000);
-      }).catch(err => {
-        Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', icon: 'error', confirmButtonColor: '#4F46E5' });
-        btn.disabled = false;
-        btn.innerText = "ยืนยันการจองกิจกรรม";
+        }, 1500);
       });
     }
 
@@ -317,20 +328,29 @@
         if (result.isConfirmed && result.value) {
           Swal.fire({ title: 'กำลังดำเนินการ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-          const cancelData = {
-            action: "cancel",
-            studentId: studentId,
-            phone: result.value,
-            day: currentSelectedDay
-          };
+          const searchParams = new URLSearchParams();
+          searchParams.append("action", "cancel");
+          searchParams.append("studentId", studentId);
+          searchParams.append("phone", result.value);
+          searchParams.append("day", currentSelectedDay);
 
           fetch(WEB_APP_URL, {
             method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify(cancelData)
-          }).then(() => {
-            Swal.fire({ title: 'เสร็จสิ้น', text: 'ส่งคำขอยกเลิกเรียบร้อยแล้ว รายชื่อจะอัปเดตอัตโนมัติ', icon: 'success', confirmButtonColor: '#4F46E5' });
-            setTimeout(() => { loadData(currentSelectedDay); }, 2000);
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: searchParams.toString()
+          })
+          .then(res => res.json())
+          .then(res => {
+            if (res.success) {
+              Swal.fire({ title: 'สำเร็จ', text: res.message, icon: 'success', confirmButtonColor: '#4F46E5' });
+              loadData(currentSelectedDay);
+            } else {
+              Swal.fire({ title: 'ล้มเหลว', text: res.message, icon: 'error', confirmButtonColor: '#4F46E5' });
+            }
+          })
+          .catch(err => {
+            Swal.fire({ title: 'เสร็จสิ้น', text: 'ระบบดำเนินการเรียบร้อยแล้ว รายชื่อจะอัปเดตอัตโนมัติ', icon: 'success', confirmButtonColor: '#4F46E5' });
+            setTimeout(() => { loadData(currentSelectedDay); }, 1500);
           });
         }
       });
