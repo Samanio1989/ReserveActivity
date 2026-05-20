@@ -200,81 +200,78 @@
   </div>
 
   <script>
+    // 🔴 วางลิงก์ Web App (Macros) ล่าสุดจาก Google Apps Script ตรงนี้ครับ
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwUlbcGfZwtdNkPDwd2puG7MlR7w_K5_zREHfRPOCLdOCyMCiVpn9DK1niB0anC2hn_sA/exec";
+
     let currentSelectedDay = "27 พฤษภาคม 2569";
 
-    // เมื่อเปิดหน้าเว็บให้ทำการโหลดข้อมูลวันแรกทันที
     document.addEventListener("DOMContentLoaded", function() {
       loadData(currentSelectedDay);
     });
 
-    // สลับหน้าจอแท็บวัน
     function switchDay(day) {
       currentSelectedDay = day;
-      
-      // สลับคลาสปุ่มแท็บ
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
         btn.classList.add('text-slate-600');
       });
-      
       let activeTabId = day.includes("27") ? "tab-27" : day.includes("28") ? "tab-28" : "tab-29";
-      let activeTab = document.getElementById(activeTabId);
-      activeTab.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
-      
+      document.getElementById(activeTabId).classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
       loadData(day);
     }
 
-    // โหลดรายชื่อจากฝั่งชีตเข้ามาแสดงผล
     function loadData(day) {
       const tbody = document.getElementById("studentTableBody");
       tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-400">กำลังโหลดข้อมูลรายชื่อ...</td></tr>`;
       
-      google.script.run.withSuccessHandler(function(students) {
-        document.getElementById("regCount").innerText = students.length;
-        tbody.innerHTML = "";
-        
-        if(students.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-400">ยังไม่มีผู้จองในวันนี้</td></tr>`;
-          return;
-        }
+      fetch(`${WEB_APP_URL}?day=${encodeURIComponent(day)}`)
+        .then(res => res.json())
+        .then(students => {
+          document.getElementById("regCount").innerText = students.length;
+          tbody.innerHTML = "";
+          
+          if(students.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-slate-400">ยังไม่มีผู้จองในวันนี้</td></tr>`;
+            return;
+          }
 
-        students.forEach((student, index) => {
-          tbody.innerHTML += `
-            <tr class="hover:bg-indigo-50/40 transition-colors duration-150">
-              <td class="px-4 py-3 text-center font-bold text-slate-400">${index + 1}</td>
-              <td class="px-4 py-3 font-bold text-indigo-600">${student.studentId}</td>
-              <td class="px-4 py-3 text-slate-800">${student.fullName}</td>
-              <td class="px-4 py-3 text-xs text-slate-600 leading-relaxed">
-                <span class="font-semibold text-slate-700">${student.major}</span><br>
-                <span class="text-slate-400 font-normal">${student.faculty}</span>
-              </td>
-              <td class="px-4 py-3 text-center">
-                <button onclick="requestCancel('${student.studentId}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg border border-red-100 shadow-sm transition-all hover:scale-105 font-semibold">
-                  ยกเลิก
-                </button>
-              </td>
-            </tr>
-          `;
+          students.forEach((student, index) => {
+            tbody.innerHTML += `
+              <tr class="hover:bg-indigo-50/40 transition-colors duration-150">
+                <td class="px-4 py-3 text-center font-bold text-slate-400">${index + 1}</td>
+                <td class="px-4 py-3 font-bold text-indigo-600">${student.studentId}</td>
+                <td class="px-4 py-3 text-slate-800">${student.fullName}</td>
+                <td class="px-4 py-3 text-xs text-slate-600 leading-relaxed">
+                  <span class="font-semibold text-slate-700">${student.major}</span><br>
+                  <span class="text-slate-400 font-normal">${student.faculty}</span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <button onclick="requestCancel('${student.studentId}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg border border-red-100 shadow-sm transition-all hover:scale-105 font-semibold">
+                    ยกเลิก
+                  </button>
+                </td>
+              </tr>
+            `;
+          });
+        }).catch(err => {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-red-500">ไม่สามารถเชื่อมต่อระบบหลังบ้านได้ กรุณาตรวจสอบการตั้งค่า Deployment</td></tr>`;
         });
-      }).getStudentList(day);
     }
 
-    // จัดการส่งฟอร์มจอง
     function handleFormSubmit(event) {
       event.preventDefault();
       const form = document.getElementById("regForm");
       const btn = document.getElementById("btnSubmit");
-      
-      // ตรวจสอบความถูกต้องของการติ๊กเลือกวัน
       const checkboxes = form.querySelectorAll('input[name="days"]:checked');
+      
       if (checkboxes.length === 0) {
         Swal.fire({ title: 'แจ้งเตือน', text: 'กรุณาเลือกวันร่วมกิจกรรมอย่างน้อย 1 วัน', icon: 'warning', confirmButtonColor: '#4F46E5' });
         return;
       }
 
-      // ดึงข้อมูลฟอร์มลง Object
       const days = Array.from(checkboxes).map(cb => cb.value);
       const formData = {
+        action: "register",
         studentId: form.studentId.value,
         fullName: form.fullName.value,
         major: form.major.value,
@@ -286,21 +283,25 @@
       btn.disabled = true;
       btn.innerText = "กำลังบันทึกข้อมูล...";
 
-      google.script.run.withSuccessHandler(function(response) {
+      fetch(WEB_APP_URL, {
+        method: "POST",
+        mode: "no-cors",
+        body: JSON.stringify(formData)
+      }).then(() => {
+        Swal.fire({ title: 'สำเร็จ', text: 'ส่งข้อมูลคำขอจองกิจกรรมเรียบร้อยแล้ว!', icon: 'success', confirmButtonColor: '#4F46E5' });
+        form.reset();
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.innerText = "ยืนยันการจองกิจกรรม";
+          loadData(currentSelectedDay);
+        }, 2000);
+      }).catch(err => {
+        Swal.fire({ title: 'ข้อผิดพลาด', text: 'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', icon: 'error', confirmButtonColor: '#4F46E5' });
         btn.disabled = false;
         btn.innerText = "ยืนยันการจองกิจกรรม";
-        
-        if (response.success) {
-          Swal.fire({ title: 'สำเร็จ', text: response.message, icon: 'success', confirmButtonColor: '#4F46E5' });
-          form.reset();
-          loadData(currentSelectedDay); // รีเฟรชตาราง
-        } else {
-          Swal.fire({ title: 'ข้อผิดพลาด', text: response.message, icon: 'error', confirmButtonColor: '#4F46E5' });
-        }
-      }).registerActivity(formData);
+      });
     }
 
-    // เรียกขอรหัสเบอร์เพื่อยกเลิกการจอง
     function requestCancel(studentId) {
       Swal.fire({
         title: 'ยืนยันตัวตนเพื่อยกเลิกการจอง',
@@ -312,27 +313,25 @@
         cancelButtonText: 'ยกเลิก',
         confirmButtonColor: '#EF4444',
         cancelButtonColor: '#64748B',
-        inputValidator: (value) => {
-          if (!value) {
-            return 'คุณจำเป็นต้องกรอกเบอร์โทรศัพท์!'
-          }
-        }
       }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({
-            title: 'กำลังตรวจสอบและดำเนินการ...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-          });
+        if (result.isConfirmed && result.value) {
+          Swal.fire({ title: 'กำลังดำเนินการ...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
-          google.script.run.withSuccessHandler(function(response) {
-            if (response.success) {
-              Swal.fire({ title: 'สำเร็จ', text: response.message, icon: 'success', confirmButtonColor: '#4F46E5' });
-              loadData(currentSelectedDay);
-            } else {
-              Swal.fire({ title: 'ไม่สามารถดำเนินการได้', text: response.message, icon: 'error', confirmButtonColor: '#4F46E5' });
-            }
-          }).cancelRegistration(studentId, result.value, currentSelectedDay);
+          const cancelData = {
+            action: "cancel",
+            studentId: studentId,
+            phone: result.value,
+            day: currentSelectedDay
+          };
+
+          fetch(WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify(cancelData)
+          }).then(() => {
+            Swal.fire({ title: 'เสร็จสิ้น', text: 'ส่งคำขอยกเลิกเรียบร้อยแล้ว รายชื่อจะอัปเดตอัตโนมัติ', icon: 'success', confirmButtonColor: '#4F46E5' });
+            setTimeout(() => { loadData(currentSelectedDay); }, 2000);
+          });
         }
       });
     }
