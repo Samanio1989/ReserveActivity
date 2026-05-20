@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบจองเข้าร่วมกิจกรรมนักศึกษา</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Anuphan) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- SweetAlert2 สำหรับแจ้งเตือนแบบสวยงาม -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body { font-family: 'Anuphan', sans-serif; }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800">
+
+  <div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <header class="text-center mb-10">
+      <h1 class="text-3xl md:text-4xl font-bold text-indigo-600 mb-2">ระบบจองเข้าร่วมกิจกรรมนักศึกษา</h1>
+      <h2 class="text-3xl md:text-4xl font-bold text-indigo-600 mb-2">สำหรับนักศึกษาที่ตกกิจกรรม และต้องการทำกิจกรรมเพิ่มเติม</h2>
+      <p class="text-sm md:text-base text-slate-500">ลงทะเบียน เพื่อปฏิบัติงานทำความสะอาดและจัดสถานที่สอบ (13 ห้อง)</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- ส่วนที่ 1: รายละเอียด และ ฟอร์มลงทะเบียน -->
+      <div class="lg:col-span-1 space-y-6">
+        <!-- เงื่อนไข / คำชี้แจง -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm">
+          <h3 class="font-semibold text-amber-800 mb-2 text-lg">💡 รายละเอียดกิจกรรม</h3>
+          <ul class="text-sm text-amber-900 space-y-1 list-disc list-inside">
+            <li>ปฏิบัติงานทำความสะอาดและจัดสถานที่สอบ 13 ห้อง</li>
+            <li>ปฏิบัติงานตั้งแต่เวลา 08.30 - 16.30 น. (ทั้งวัน)</li>
+            <li>สิ่งที่ต้องเตรียมมา 1. หน้ากากอนามัย 2. ผ้าขี้ริ้วสำหรับทำความสะอาด 1 คน/ชิ้น</li>
+            <li><strong>การแต่งกาย:</strong> ชุดลำลองสุภาพ</li>
+            <li>รายงานตัวในวันที่ลงชื่อปฏิบัติงาน ตั้งแต่เวลา 08.30 - 08.45 น. ณ โดมโรงเรียนสาธิตมหาวิทยาลัย ฝ่ายมัธยม</li>
+            <li>ภายใน 1 วันที่เข้าร่วม จะได้รับ <strong>2 Passcode</strong></li>
+            <li>จำกัดสิทธิ์ 1 คน 1 สิทธิ์ในแต่ละวัน (ห้ามลงซ้ำวันเดียวกัน)</li>
+            <li>รับจำนวนจำกัด <strong>150 คน / วัน</strong> เท่านั้น</li>
+            <li>สามารถยกเลิกสิทธิ์ได้ด้วยตนเอง <span class="text-red-600 font-bold">ก่อนวันกิจกรรม 1 วัน</span></li>
+          </ul>
+        </div>
+
+        <!-- ฟอร์มลงทะเบียน -->
+        <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-100">
+          <h2 class="text-xl font-bold text-slate-700 mb-4 flex items-center">
+            📝 ฟอร์มจองกิจกรรม
+          </h2>
+          <form id="regForm" onsubmit="handleFormSubmit(event)" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">รหัสนักศึกษา (8 หลัก)</label>
+              <input type="text" name="studentId" maxlength="8" required pattern="\d{8}" placeholder="เช่น 65123456" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">ชื่อ - นามสกุล</label>
+              <input type="text" name="fullName" required placeholder="นายสมชาย มั่นคง" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">สาขาวิชา</label>
+              <input type="text" name="major" required placeholder="วิทยาการคอมพิวเตอร์" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">คณะ</label>
+              <input type="text" name="faculty" required placeholder="วิทยาศาสตร์และเทคโนโลยี" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-1">เบอร์โทรศัพท์ (ใช้ยืนยันการลบข้อมูล)</label>
+              <input type="tel" name="phone" required placeholder="08XXXXXXXX" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-slate-600 mb-2">เลือกวันที่ต้องการจอง (เลือกได้มากกว่า 1 วัน)</label>
+              <div class="space-y-2">
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100">
+                  <input type="checkbox" name="days" value="27 พฤษภาคม 2569" class="w-4 h-4 text-indigo-600 rounded">
+                  <span class="text-sm">27 พฤษภาคม 2569</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100">
+                  <input type="checkbox" name="days" value="28 พฤษภาคม 2569" class="w-4 h-4 text-indigo-600 rounded">
+                  <span class="text-sm">28 พฤษภาคม 2569</span>
+                </label>
+                <label class="flex items-center space-x-2 bg-slate-50 p-2 rounded-lg cursor-pointer hover:bg-slate-100">
+                  <input type="checkbox" name="days" value="29 พฤษภาคม 2569" class="w-4 h-4 text-indigo-600 rounded">
+                  <span class="text-sm">29 พฤษภาคม 2569</span>
+                </label>
+              </div>
+            </div>
+
+            <button type="submit" id="btnSubmit" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition shadow-md shadow-indigo-100">
+              ยืนยันการจองกิจกรรม
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ส่วนที่ 2: ตารางแสดงรายชื่อผู้เข้าร่วมกิจกรรมเรียบร้อยแล้ว -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="bg-white p-6 rounded-2xl shadow-md border border-slate-100">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-4 border-b border-slate-100 gap-4">
+            <h2 class="text-xl font-bold text-slate-700">📋 รายชื่อผู้ตรวจสอบสถานะการจอง</h2>
+            <!-- แท็บเลือกวันเพื่อสลับตารางข้อมูล -->
+            <div class="flex bg-slate-100 p-1 rounded-xl">
+              <button onclick="switchDay('27 พฤษภาคม 2569')" id="tab-27" class="tab-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg bg-white text-indigo-600 shadow-sm transition">27 พ.ค.</button>
+              <button onclick="switchDay('28 พฤษภาคม 2569')" id="tab-28" class="tab-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg text-slate-600 hover:text-indigo-600 transition">28 พ.ค.</button>
+              <button onclick="switchDay('29 พฤษภาคม 2569')" id="tab-29" class="tab-btn px-3 py-1.5 text-xs md:text-sm font-medium rounded-lg text-slate-600 hover:text-indigo-600 transition">29 พ.ค.</button>
+            </div>
+          </div>
+
+          <!-- สรุปจำนวนยอดจอง -->
+          <div class="my-4 text-sm text-slate-600">
+            ยอดผู้ลงทะเบียนวันปัจจุบัน: <span id="regCount" class="font-bold text-indigo-600">0</span> / 150 คน
+          </div>
+
+          <!-- ตารางรายชื่อ -->
+          <div class="overflow-x-auto rounded-xl border border-slate-100">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-600 uppercase text-xs font-semibold">
+                <tr>
+                  <th class="px-4 py-3 text-center">ลำดับ</th>
+                  <th class="px-4 py-3">รหัสนักศึกษา</th>
+                  <th class="px-4 py-3">ชื่อ-สกุล</th>
+                  <th class="px-4 py-3">สาขา/คณะ</th>
+                  <th class="px-4 py-3 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="studentTableBody" class="divide-y divide-slate-100 text-slate-700">
+                <!-- ข้อมูลจะถูก render ผ่าน JavaScript -->
+                <tr>
+                  <td colspan="5" class="text-center py-8 text-slate-400">กำลังโหลดข้อมูลรายชื่อ...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let currentSelectedDay = "27 พฤษภาคม 2569";
+
+    // เมื่อเปิดหน้าเว็บให้ทำการโหลดข้อมูลวันแรกทันที
+    document.addEventListener("DOMContentLoaded", function() {
+      loadData(currentSelectedDay);
+    });
+
+    // สลับหน้าจอแท็บวัน
+    function switchDay(day) {
+      currentSelectedDay = day;
+      
+      // สลับคลาสปุ่มแท็บ
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-indigo-600', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+      
+      let activeTabId = day.includes("27") ? "tab-27" : day.includes("28") ? "tab-28" : "tab-29";
+      let activeTab = document.getElementById(activeTabId);
+      activeTab.classList.add('bg-white', 'text-indigo-600', 'shadow-sm');
+      
+      loadData(day);
+    }
+
+    // โหลดรายชื่อจากฝั่งชีตเข้ามาแสดงผล
+    function loadData(day) {
+      const tbody = document.getElementById("studentTableBody");
+      tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">กำลังโหลดข้อมูลรายชื่อ...</td></tr>`;
+      
+      google.script.run.withSuccessHandler(function(students) {
+        document.getElementById("regCount").innerText = students.length;
+        tbody.innerHTML = "";
+        
+        if(students.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400">ยังไม่มีผู้จองในวันนี้</td></tr>`;
+          return;
+        }
+
+        students.forEach((student, index) => {
+          tbody.innerHTML += `
+            <tr class="hover:bg-slate-50 transition">
+              <td class="px-4 py-3 text-center font-medium text-slate-500">${index + 1}</td>
+              <td class="px-4 py-3 font-semibold text-indigo-600">${student.studentId}</td>
+              <td class="px-4 py-3">${student.fullName}</td>
+              <td class="px-4 py-3 text-xs text-slate-500">${student.major}<br><span class="text-slate-400">${student.faculty}</span></td>
+              <td class="px-4 py-3 text-center">
+                <button onclick="requestCancel('${student.studentId}')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-2.5 py-1 rounded-md transition font-medium">
+                  ยกเลิก
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      }).getStudentList(day);
+    }
+
+    // จัดการส่งฟอร์มจอง
+    function handleFormSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById("regForm");
+      const btn = document.getElementById("btnSubmit");
+      
+      // ตรวจสอบความถูกต้องของการติ๊กเลือกวัน
+      const checkboxes = form.querySelectorAll('input[name="days"]:checked');
+      if (checkboxes.length === 0) {
+        Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันร่วมกิจกรรมอย่างน้อย 1 วัน', 'warning');
+        return;
+      }
+
+      // ดึงข้อมูลฟอร์มลง Object
+      const days = Array.from(checkboxes).map(cb => cb.value);
+      const formData = {
+        studentId: form.studentId.value,
+        fullName: form.fullName.value,
+        major: form.major.value,
+        faculty: form.faculty.value,
+        phone: form.phone.value,
+        days: days
+      };
+
+      btn.disabled = true;
+      btn.innerText = "กำลังบันทึกข้อมูล...";
+
+      google.script.run.withSuccessHandler(function(response) {
+        btn.disabled = false;
+        btn.innerText = "ยืนยันการจองกิจกรรม";
+        
+        if (response.success) {
+          Swal.fire('สำเร็จ', response.message, 'success');
+          form.reset();
+          loadData(currentSelectedDay); // รีเฟรชตาราง
+        } else {
+          Swal.fire('ข้อผิดพลาด', response.message, 'error');
+        }
+      }).registerActivity(formData);
+    }
+
+    // เรียกขอรหัสเบอร์เพื่อยกเลิกการจอง
+    function requestCancel(studentId) {
+      Swal.fire({
+        title: 'ยืนยันตัวตนเพื่อยกเลิกการจอง',
+        text: `กรุณากรอกเบอร์โทรศัพท์ที่ใช้ตอนลงทะเบียน ของรหัส: ${studentId}`,
+        input: 'tel',
+        inputPlaceholder: 'กรอกเบอร์โทรศัพท์มือถือ',
+        showCancelButton: true,
+        confirmButtonText: 'ยืนยันยกเลิกจอง',
+        cancelButtonText: 'ยกเลิก',
+        confirmButtonColor: '#EF4444',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'คุณจำเป็นต้องกรอกเบอร์โทรศัพท์!'
+          }
+        }
+      }).then((result) => {
+        if (result.isConfirmed) {
+          Swal.fire({
+            title: 'กำลังตรวจสอบและดำเนินการ...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+          });
+
+          google.script.run.withSuccessHandler(function(response) {
+            if (response.success) {
+              Swal.fire('สำเร็จ', response.message, 'success');
+              loadData(currentSelectedDay);
+            } else {
+              Swal.fire('ไม่สามารถดำเนินการได้', response.message, 'error');
+            }
+          }).cancelRegistration(studentId, result.value, currentSelectedDay);
+        }
+      });
+    }
+  </script>
+</body>
+</html>
